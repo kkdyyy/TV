@@ -1,9 +1,11 @@
-import tkinter as tk
-from utils.config import config
-from tkinter import ttk
-from tkinter import scrolledtext
-from tkinter import filedialog
 import os
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import ttk
+
+import utils.constants as constants
+from utils.config import config
+from utils.tools import resource_path
 
 
 class DefaultUI:
@@ -12,47 +14,6 @@ class DefaultUI:
         """
         Init default UI
         """
-        frame_default_open_update = tk.Frame(root)
-        frame_default_open_update.pack(fill=tk.X)
-        frame_default_open_update_column1 = tk.Frame(frame_default_open_update)
-        frame_default_open_update_column1.pack(side=tk.LEFT, fill=tk.Y)
-        frame_default_open_update_column2 = tk.Frame(frame_default_open_update)
-        frame_default_open_update_column2.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.open_update_label = tk.Label(
-            frame_default_open_update_column1, text="开启更新:", width=8
-        )
-        self.open_update_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_update_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_update")
-        )
-        self.open_update_checkbutton = ttk.Checkbutton(
-            frame_default_open_update_column1,
-            variable=self.open_update_var,
-            onvalue=True,
-            offvalue=False,
-            command=self.update_open_update,
-            text="(关闭则只运行结果页面服务)",
-        )
-        self.open_update_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
-
-        self.open_use_old_result_label = tk.Label(
-            frame_default_open_update_column2, text="使用历史结果:", width=12
-        )
-        self.open_use_old_result_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_use_old_result_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_use_old_result")
-        )
-        self.open_use_old_result_checkbutton = ttk.Checkbutton(
-            frame_default_open_update_column2,
-            variable=self.open_use_old_result_var,
-            onvalue=True,
-            offvalue=False,
-            command=self.update_open_use_old_result,
-            text="(保留上次更新可用结果)",
-        )
-        self.open_use_old_result_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
-
         frame_default_source_file = tk.Frame(root)
         frame_default_source_file.pack(fill=tk.X)
         frame_default_source_file_column1 = tk.Frame(frame_default_source_file)
@@ -66,7 +27,7 @@ class DefaultUI:
         self.source_file_entry = tk.Entry(frame_default_source_file_column1)
         self.source_file_label.pack(side=tk.LEFT, padx=4, pady=8)
         self.source_file_entry.pack(fill=tk.X, padx=4, expand=True)
-        self.source_file_entry.insert(0, config.get("Settings", "source_file"))
+        self.source_file_entry.insert(0, config.source_file)
 
         self.source_file_button = tk.ttk.Button(
             frame_default_source_file_column2,
@@ -88,7 +49,7 @@ class DefaultUI:
         self.final_file_entry = tk.Entry(frame_default_final_file_column1)
         self.final_file_label.pack(side=tk.LEFT, padx=4, pady=8)
         self.final_file_entry.pack(fill=tk.X, padx=4, expand=True)
-        self.final_file_entry.insert(0, config.get("Settings", "final_file"))
+        self.final_file_entry.insert(0, config.final_file)
 
         self.final_file_button = tk.ttk.Button(
             frame_default_final_file_column2,
@@ -97,6 +58,85 @@ class DefaultUI:
         )
         self.final_file_button.pack(side=tk.LEFT, padx=4, pady=0)
 
+        frame_default_open_update = tk.Frame(root)
+        frame_default_open_update.pack(fill=tk.X)
+        frame_default_open_update_column1 = tk.Frame(frame_default_open_update)
+        frame_default_open_update_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_default_open_update_column2 = tk.Frame(frame_default_open_update)
+        frame_default_open_update_column2.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.open_update_label = tk.Label(
+            frame_default_open_update_column1, text="开启更新:", width=12
+        )
+        self.open_update_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_update_var = tk.BooleanVar(value=config.open_update)
+        self.open_update_checkbutton = ttk.Checkbutton(
+            frame_default_open_update_column1,
+            variable=self.open_update_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_update
+        )
+        self.open_update_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+
+        self.open_service_label = tk.Label(
+            frame_default_open_update_column2, text="开启服务:", width=8
+        )
+        self.open_service_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_service_var = tk.BooleanVar(value=config.open_service)
+        self.open_service_checkbutton = ttk.Checkbutton(
+            frame_default_open_update_column2,
+            variable=self.open_service_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_service
+        )
+        self.open_service_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+
+        self.app_port_label = tk.Label(
+            frame_default_open_update_column2, text="端口:", width=3
+        )
+        self.app_port_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.app_port_entry = tk.Entry(frame_default_open_update_column2, width=8)
+        self.app_port_entry.pack(side=tk.LEFT, padx=4, pady=8)
+        self.app_port_entry.insert(0, config.app_port)
+        self.app_port_entry.bind("<KeyRelease>", self.update_app_port)
+
+        frame_default_open_cache = tk.Frame(root)
+        frame_default_open_cache.pack(fill=tk.X)
+        frame_default_open_cache_column1 = tk.Frame(frame_default_open_cache)
+        frame_default_open_cache_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_default_open_cache_column2 = tk.Frame(frame_default_open_cache)
+        frame_default_open_cache_column2.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.open_use_old_result_label = tk.Label(
+            frame_default_open_cache_column1, text="使用历史结果:", width=12
+        )
+        self.open_use_old_result_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_use_old_result_var = tk.BooleanVar(value=config.open_use_old_result)
+        self.open_use_old_result_checkbutton = ttk.Checkbutton(
+            frame_default_open_cache_column1,
+            variable=self.open_use_old_result_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_use_old_result,
+        )
+        self.open_use_old_result_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+
+        self.open_use_cache_label = tk.Label(
+            frame_default_open_cache_column2, text="使用离线数据:", width=12
+        )
+        self.open_use_cache_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_use_cache_var = tk.BooleanVar(value=config.open_use_cache)
+        self.open_use_cache_checkbutton = ttk.Checkbutton(
+            frame_default_open_cache_column2,
+            variable=self.open_use_cache_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_use_cache,
+        )
+        self.open_use_cache_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+
         frame_default_mode = tk.Frame(root)
         frame_default_mode.pack(fill=tk.X)
         frame_default_mode_params_column1 = tk.Frame(frame_default_mode)
@@ -104,39 +144,28 @@ class DefaultUI:
         frame_default_mode_params_column2 = tk.Frame(frame_default_mode)
         frame_default_mode_params_column2.pack(side=tk.RIGHT, fill=tk.Y)
 
-        self.open_driver_label = tk.Label(
-            frame_default_mode_params_column1, text="浏览器模式:", width=12
+        self.open_request_label = tk.Label(
+            frame_default_mode_params_column1, text="开启网络请求:", width=12
         )
-        self.open_driver_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_driver_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_driver")
-        )
-        self.open_driver_checkbutton = ttk.Checkbutton(
+        self.open_request_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_request_var = tk.BooleanVar(value=config.open_request)
+        self.open_request_checkbutton = ttk.Checkbutton(
             frame_default_mode_params_column1,
-            variable=self.open_driver_var,
+            variable=self.open_request_var,
             onvalue=True,
             offvalue=False,
-            command=self.update_open_driver,
-            text="(若获取更新异常请开启)",
+            command=self.update_open_request
         )
-        self.open_driver_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_request_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
-        self.open_proxy_label = tk.Label(
-            frame_default_mode_params_column2, text="开启代理:", width=12
+        self.request_timeout_label = tk.Label(
+            frame_default_mode_params_column2, text="请求超时(s):", width=12
         )
-        self.open_proxy_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_proxy_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_proxy")
-        )
-        self.open_proxy_checkbutton = ttk.Checkbutton(
-            frame_default_mode_params_column2,
-            variable=self.open_proxy_var,
-            onvalue=True,
-            offvalue=False,
-            command=self.update_open_proxy,
-            text="(通过代理进行更新)",
-        )
-        self.open_proxy_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+        self.request_timeout_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.request_timeout_entry = tk.Entry(frame_default_mode_params_column2, width=8)
+        self.request_timeout_entry.pack(side=tk.LEFT, padx=4, pady=8)
+        self.request_timeout_entry.insert(0, config.request_timeout)
+        self.request_timeout_entry.bind("<KeyRelease>", self.update_request_timeout)
 
         frame_default_channel = tk.Frame(root)
         frame_default_channel.pack(fill=tk.X)
@@ -149,249 +178,218 @@ class DefaultUI:
             frame_default_channel_column1, text="频道接口数量:", width=12
         )
         self.urls_limit_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.urls_limit_entry = tk.Entry(frame_default_channel_column1)
+        self.urls_limit_entry = tk.Entry(frame_default_channel_column1, width=8)
         self.urls_limit_entry.pack(side=tk.LEFT, padx=4, pady=8)
-        self.urls_limit_entry.insert(15, config.getint("Settings", "urls_limit"))
+        self.urls_limit_entry.insert(0, config.urls_limit)
         self.urls_limit_entry.bind("<KeyRelease>", self.update_urls_limit)
 
         self.ipv_type_label = tk.Label(
             frame_default_channel_column2, text="接口协议类型:", width=12
         )
         self.ipv_type_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.ipv_type_combo = ttk.Combobox(frame_default_channel_column2)
+        self.ipv_type_combo = ttk.Combobox(frame_default_channel_column2, width=5)
         self.ipv_type_combo.pack(side=tk.LEFT, padx=4, pady=8)
-        self.ipv_type_combo["values"] = ("ipv4", "ipv6", "全部")
-        ipv_type = config.get("Settings", "ipv_type")
-        if ipv_type == "ipv4":
+        self.ipv_type_combo["values"] = ("IPv4", "IPv6", "全部")
+        if config.ipv_type == "ipv4":
             self.ipv_type_combo.current(0)
-        elif ipv_type == "ipv6":
+        elif config.ipv_type == "ipv6":
             self.ipv_type_combo.current(1)
         else:
             self.ipv_type_combo.current(2)
         self.ipv_type_combo.bind("<<ComboboxSelected>>", self.update_ipv_type)
 
-        frame_default_sort = tk.Frame(root)
-        frame_default_sort.pack(fill=tk.X)
-        frame_default_sort_column1 = tk.Frame(frame_default_sort)
-        frame_default_sort_column1.pack(side=tk.LEFT, fill=tk.Y)
-        frame_default_sort_column2 = tk.Frame(frame_default_sort)
-        frame_default_sort_column2.pack(side=tk.RIGHT, fill=tk.Y)
+        frame_proxy_mode = tk.Frame(root)
+        frame_proxy_mode.pack(fill=tk.X)
+        frame_proxy_mode_params_column1 = tk.Frame(frame_proxy_mode)
+        frame_proxy_mode_params_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_proxy_mode_params_column2 = tk.Frame(frame_proxy_mode)
+        frame_proxy_mode_params_column2.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.open_proxy_label = tk.Label(
+            frame_proxy_mode_params_column1, text="开启代理查询:", width=12
+        )
+        self.open_proxy_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_proxy_var = tk.BooleanVar(value=config.open_proxy)
+        self.open_proxy_checkbutton = ttk.Checkbutton(
+            frame_proxy_mode_params_column1,
+            variable=self.open_proxy_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_proxy
+        )
+        self.open_proxy_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
         self.open_keep_all_label = tk.Label(
-            frame_default_sort_column1, text="保留模式:", width=12
+            frame_proxy_mode_params_column2, text="完整记录:", width=12
         )
         self.open_keep_all_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_keep_all_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_keep_all")
-        )
+        self.open_keep_all_var = tk.BooleanVar(value=config.open_keep_all)
         self.open_keep_all_checkbutton = ttk.Checkbutton(
-            frame_default_sort_column1,
+            frame_proxy_mode_params_column2,
             variable=self.open_keep_all_var,
             onvalue=True,
             offvalue=False,
-            command=self.update_open_keep_all,
-            text="(保留所有检索结果，建议手动维护时开启)",
+            command=self.update_open_keep_all
         )
         self.open_keep_all_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
-        self.open_sort_label = tk.Label(
-            frame_default_sort_column2, text="开启测速排序:", width=12
-        )
-        self.open_sort_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_sort_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_sort")
-        )
-        self.open_sort_checkbutton = ttk.Checkbutton(
-            frame_default_sort_column2,
-            variable=self.open_sort_var,
-            onvalue=True,
-            offvalue=False,
-            command=self.update_open_sort,
-        )
-        self.open_sort_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
-
-        frame_default_sort_mode = tk.Frame(root)
-        frame_default_sort_mode.pack(fill=tk.X)
-        frame_default_sort_mode_column1 = tk.Frame(frame_default_sort_mode)
-        frame_default_sort_mode_column1.pack(side=tk.LEFT, fill=tk.Y)
-        frame_default_sort_mode_column2 = tk.Frame(frame_default_sort_mode)
-        frame_default_sort_mode_column2.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.open_ffmpeg_label = tk.Label(
-            frame_default_sort_mode_column1, text="FFmpeg测速:", width=12
-        )
-        self.open_ffmpeg_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_ffmpeg_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_ffmpeg")
-        )
-        self.open_ffmpeg_checkbutton = ttk.Checkbutton(
-            frame_default_sort_mode_column1,
-            variable=self.open_ffmpeg_var,
-            onvalue=True,
-            offvalue=False,
-            command=self.update_open_ffmpeg,
-            text="(需要手动安装)",
-        )
-        self.open_ffmpeg_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
-
+        frame_m3u = tk.Frame(root)
+        frame_m3u.pack(fill=tk.X)
+        frame_proxy_m3u_column1 = tk.Frame(frame_m3u)
+        frame_proxy_m3u_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_proxy_m3u_column2 = tk.Frame(frame_m3u)
+        frame_proxy_m3u_column2.pack(side=tk.RIGHT, fill=tk.Y)
         self.open_m3u_result_label = tk.Label(
-            frame_default_sort_mode_column2, text="M3U转换:", width=12
+            frame_proxy_m3u_column1, text="M3U转换:", width=12
         )
         self.open_m3u_result_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_m3u_result_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_m3u_result")
-        )
+        self.open_m3u_result_var = tk.BooleanVar(value=config.open_m3u_result)
         self.open_m3u_result_checkbutton = ttk.Checkbutton(
-            frame_default_sort_mode_column2,
+            frame_proxy_m3u_column1,
             variable=self.open_m3u_result_var,
             onvalue=True,
             offvalue=False,
-            command=self.update_open_m3u_result,
-            text="(支持频道图标)",
+            command=self.update_open_m3u_result
         )
         self.open_m3u_result_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
-        frame_default_resolution_params = tk.Frame(root)
-        frame_default_resolution_params.pack(fill=tk.X)
-        frame_default_resolution_params_column1 = tk.Frame(
-            frame_default_resolution_params
+        self.open_driver_label = tk.Label(
+            frame_proxy_m3u_column2, text="浏览器模式:", width=12
         )
-        frame_default_resolution_params_column1.pack(side=tk.LEFT, fill=tk.Y)
-        frame_default_resolution_params_column2 = tk.Frame(
-            frame_default_resolution_params
-        )
-        frame_default_resolution_params_column2.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.open_filter_resolution_label = tk.Label(
-            frame_default_resolution_params_column1, text="分辨率过滤:", width=12
-        )
-        self.open_filter_resolution_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_filter_resolution_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_filter_resolution")
-        )
-        self.open_filter_resolution_checkbutton = ttk.Checkbutton(
-            frame_default_resolution_params_column1,
-            variable=self.open_filter_resolution_var,
+        self.open_driver_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_driver_var = tk.BooleanVar(value=config.open_driver)
+        self.open_driver_checkbutton = ttk.Checkbutton(
+            frame_proxy_m3u_column2,
+            variable=self.open_driver_var,
             onvalue=True,
             offvalue=False,
-            command=self.update_open_filter_resolution,
-            text="(低于最小分辨率将被过滤)",
+            command=self.update_open_driver
         )
-        self.open_filter_resolution_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_driver_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
-        self.min_resolution_label = tk.Label(
-            frame_default_resolution_params_column2, text="最小分辨率:", width=12
+        frame_default_open_update_info = tk.Frame(root)
+        frame_default_open_update_info.pack(fill=tk.X)
+        frame_default_open_update_info_column1 = tk.Frame(
+            frame_default_open_update_info
         )
-        self.min_resolution_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.min_resolution_entry = tk.Entry(frame_default_resolution_params_column2)
-        self.min_resolution_entry.pack(side=tk.LEFT, padx=4, pady=8)
-        self.min_resolution_entry.insert(0, config.get("Settings", "min_resolution"))
-        self.min_resolution_entry.bind("<KeyRelease>", self.update_min_resolution)
+        frame_default_open_update_info_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_default_open_update_info_column2 = tk.Frame(
+            frame_default_open_update_info
+        )
+        frame_default_open_update_info_column2.pack(side=tk.RIGHT, fill=tk.Y)
 
-        frame_default_sort_params = tk.Frame(root)
-        frame_default_sort_params.pack(fill=tk.X)
-        frame_default_sort_params_column1 = tk.Frame(frame_default_sort_params)
-        frame_default_sort_params_column1.pack(side=tk.LEFT, fill=tk.Y)
-        frame_default_sort_params_column2 = tk.Frame(frame_default_sort_params)
-        frame_default_sort_params_column2.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.response_time_weight_label = tk.Label(
-            frame_default_sort_params_column1, text="响应时间权重:", width=12
-        )
-        self.response_time_weight_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.response_time_weight_scale = tk.Scale(
-            frame_default_sort_params_column1,
-            from_=0,
-            to=1,
-            orient=tk.HORIZONTAL,
-            resolution=0.1,
-            command=self.update_response_time_weight,
-        )
-        self.response_time_weight_scale.pack(side=tk.LEFT, padx=4, pady=8)
-        self.response_time_weight_scale.set(
-            config.getfloat("Settings", "response_time_weight")
-        )
-
-        self.resolution_weight_label = tk.Label(
-            frame_default_sort_params_column2, text="分辨率权重:", width=12
-        )
-        self.resolution_weight_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.resolution_weight_scale = tk.Scale(
-            frame_default_sort_params_column2,
-            from_=0,
-            to=1,
-            orient=tk.HORIZONTAL,
-            resolution=0.1,
-            command=self.update_resolution_weight,
-        )
-        self.resolution_weight_scale.pack(side=tk.LEFT, padx=4, pady=8)
-        self.resolution_weight_scale.set(
-            config.getfloat("Settings", "resolution_weight")
-        )
-
-        frame_default_open_update_time = tk.Frame(root)
-        frame_default_open_update_time.pack(fill=tk.X)
         self.open_update_time_label = tk.Label(
-            frame_default_open_update_time, text="显示更新时间:", width=12
+            frame_default_open_update_info_column1, text="显示更新时间:", width=12
         )
         self.open_update_time_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.open_update_time_var = tk.BooleanVar(
-            value=config.getboolean("Settings", "open_update_time")
-        )
+        self.open_update_time_var = tk.BooleanVar(value=config.open_update_time)
         self.open_update_time_checkbutton = ttk.Checkbutton(
-            frame_default_open_update_time,
+            frame_default_open_update_info_column1,
             variable=self.open_update_time_var,
             onvalue=True,
             offvalue=False,
             command=self.update_open_update_time,
-            text="(显示于结果文件首行, 作为首个频道分类显示)",
         )
         self.open_update_time_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
-        frame_default_domain_blacklist = tk.Frame(root)
-        frame_default_domain_blacklist.pack(fill=tk.X)
+        self.open_url_info_label = tk.Label(
+            frame_default_open_update_info_column2, text="显示接口信息:", width=12
+        )
+        self.open_url_info_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_url_info_var = tk.BooleanVar(value=config.open_url_info)
+        self.open_url_info_checkbutton = ttk.Checkbutton(
+            frame_default_open_update_info_column2,
+            variable=self.open_url_info_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_url_info,
+        )
+        self.open_url_info_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
-        self.domain_blacklist_label = tk.Label(
-            frame_default_domain_blacklist, text="域名黑名单:", width=12
+        frame_default_open_empty_category = tk.Frame(root)
+        frame_default_open_empty_category.pack(fill=tk.X)
+        frame_default_open_empty_category_column1 = tk.Frame(
+            frame_default_open_empty_category
         )
-        self.domain_blacklist_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.domain_blacklist_text = scrolledtext.ScrolledText(
-            frame_default_domain_blacklist, height=2
+        frame_default_open_empty_category_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_default_open_empty_category_column2 = tk.Frame(
+            frame_default_open_empty_category
         )
-        self.domain_blacklist_text.pack(
-            side=tk.LEFT, padx=4, pady=8, expand=True, fill=tk.BOTH
-        )
-        self.domain_blacklist_text.insert(
-            tk.END, config.get("Settings", "domain_blacklist")
-        )
-        self.domain_blacklist_text.bind("<KeyRelease>", self.update_domain_blacklist)
+        frame_default_open_empty_category_column2.pack(side=tk.RIGHT, fill=tk.Y)
 
-        frame_default_url_keywords_blacklist = tk.Frame(root)
-        frame_default_url_keywords_blacklist.pack(fill=tk.X)
+        self.open_empty_category_label = tk.Label(
+            frame_default_open_empty_category_column1, text="显示无结果分类:", width=12
+        )
+        self.open_empty_category_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.open_empty_category_var = tk.BooleanVar(value=config.open_empty_category)
+        self.open_empty_category_checkbutton = ttk.Checkbutton(
+            frame_default_open_empty_category_column1,
+            variable=self.open_empty_category_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_open_empty_category,
+        )
+        self.open_empty_category_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
 
+        self.ipv6_support_label = tk.Label(
+            frame_default_open_empty_category_column2, text="跳过IPv6检测:", width=12
+        )
+        self.ipv6_support_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.ipv6_support_var = tk.BooleanVar(value=config.ipv6_support)
+        self.ipv6_support_checkbutton = ttk.Checkbutton(
+            frame_default_open_empty_category_column2,
+            variable=self.ipv6_support_var,
+            onvalue=True,
+            offvalue=False,
+            command=self.update_ipv6_support,
+        )
+        self.ipv6_support_checkbutton.pack(side=tk.LEFT, padx=4, pady=8)
+
+        frame_default_url_keywords = tk.Frame(root)
+        frame_default_url_keywords.pack(fill=tk.X)
+        frame_default_url_keywords_column1 = tk.Frame(frame_default_url_keywords)
+        frame_default_url_keywords_column1.pack(side=tk.LEFT, fill=tk.Y)
+        frame_default_url_keywords_column2 = tk.Frame(frame_default_url_keywords)
+        frame_default_url_keywords_column2.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.url_keywords_whitelist_label = tk.Label(
+            frame_default_url_keywords_column1, text="白名单:", width=12
+        )
+        self.url_keywords_whitelist_label.pack(side=tk.LEFT, padx=4, pady=8)
+        self.whitelist_file_button = tk.ttk.Button(
+            frame_default_url_keywords_column1,
+            text="编辑",
+            command=self.edit_whitelist_file,
+        )
+        self.whitelist_file_button.pack(side=tk.LEFT, padx=4, pady=0)
         self.url_keywords_blacklist_label = tk.Label(
-            frame_default_url_keywords_blacklist, text="关键字黑名单:", width=12
+            frame_default_url_keywords_column2, text="黑名单:", width=12
         )
         self.url_keywords_blacklist_label.pack(side=tk.LEFT, padx=4, pady=8)
-        self.url_keywords_blacklist_text = scrolledtext.ScrolledText(
-            frame_default_url_keywords_blacklist, height=2
+        self.blacklist_file_button = tk.ttk.Button(
+            frame_default_url_keywords_column2,
+            text="编辑",
+            command=self.edit_blacklist_file,
         )
-        self.url_keywords_blacklist_text.pack(
-            side=tk.LEFT, padx=4, pady=8, expand=True, fill=tk.BOTH
-        )
-        self.url_keywords_blacklist_text.insert(
-            tk.END, config.get("Settings", "url_keywords_blacklist")
-        )
-        self.url_keywords_blacklist_text.bind(
-            "<KeyRelease>", self.update_url_keywords_blacklist
-        )
+        self.blacklist_file_button.pack(side=tk.LEFT, padx=4, pady=0)
 
     def update_open_update(self):
         config.set("Settings", "open_update", str(self.open_update_var.get()))
 
+    def update_open_service(self):
+        config.set("Settings", "open_service", str(self.open_update_var.get()))
+
+    def update_app_port(self, event):
+        config.set("Settings", "app_port", self.app_port_entry.get())
+
     def update_open_use_old_result(self):
         config.set(
             "Settings", "open_use_old_result", str(self.open_use_old_result_var.get())
+        )
+
+    def update_open_use_cache(self):
+        config.set(
+            "Settings", "open_use_cache", str(self.open_use_cache_var.get())
         )
 
     def select_source_file(self):
@@ -412,6 +410,9 @@ class DefaultUI:
             self.final_file_entry.insert(0, filepath)
             config.set("Settings", "final_file", filepath)
 
+    def update_open_request(self):
+        config.set("Settings", "open_requests", str(self.open_request_var.get()))
+
     def update_open_driver(self):
         config.set("Settings", "open_driver", str(self.open_driver_var.get()))
 
@@ -421,91 +422,68 @@ class DefaultUI:
     def update_open_keep_all(self):
         config.set("Settings", "open_keep_all", str(self.open_keep_all_var.get()))
 
-    def update_open_sort(self):
-        config.set("Settings", "open_sort", str(self.open_sort_var.get()))
-
-    def update_open_ffmpeg(self):
-        config.set("Settings", "open_ffmpeg", str(self.open_ffmpeg_var.get()))
-
     def update_open_m3u_result(self):
         config.set("Settings", "open_m3u_result", str(self.open_m3u_result_var.get()))
 
-    def update_open_filter_resolution(self):
-        config.set(
-            "Settings",
-            "open_filter_resolution",
-            str(self.open_filter_resolution_var.get()),
-        )
-
-    def update_min_resolution(self, event):
-        config.set("Settings", "min_resolution", self.min_resolution_entry.get())
+    def update_request_timeout(self, event):
+        config.set("Settings", "request_timeout", self.request_timeout_entry.get())
 
     def update_urls_limit(self, event):
         config.set("Settings", "urls_limit", self.urls_limit_entry.get())
 
-    def update_response_time_weight(self, event):
-        weight1 = self.response_time_weight_scale.get()
-        weight2 = 1 - weight1
-        self.resolution_weight_scale.set(weight2)
-        config.set("Settings", "response_time_weight", str(weight1))
-        config.set("Settings", "resolution_weight", str(weight2))
-
-    def update_resolution_weight(self, event):
-        weight1 = self.resolution_weight_scale.get()
-        weight2 = 1 - weight1
-        self.response_time_weight_scale.set(weight2)
-        config.set("Settings", "resolution_weight", str(weight1))
-        config.set("Settings", "response_time_weight", str(weight2))
-
     def update_open_update_time(self):
         config.set("Settings", "open_update_time", str(self.open_update_time_var.get()))
+
+    def update_open_url_info(self):
+        config.set("Settings", "open_url_info", str(self.open_url_info_var.get()))
+
+    def update_open_empty_category(self):
+        config.set(
+            "Settings", "open_empty_category", str(self.open_empty_category_var.get())
+        )
+
+    def update_ipv6_support(self):
+        config.set(
+            "Settings", "ipv6_support", str(self.ipv6_support_var.get())
+        )
 
     def update_ipv_type(self, event):
         config.set("Settings", "ipv_type", self.ipv_type_combo.get())
 
-    def update_url_keywords_blacklist(self, event):
-        config.set(
-            "Settings",
-            "url_keywords_blacklist",
-            self.url_keywords_blacklist_text.get(1.0, tk.END),
-        )
+    def edit_whitelist_file(self):
+        path = resource_path(constants.whitelist_path)
+        if os.path.exists(path):
+            os.system(f'notepad.exe {path}')
 
-    def update_domain_blacklist(self, event):
-        config.set(
-            "Settings",
-            "domain_blacklist",
-            self.domain_blacklist_text.get(1.0, tk.END),
-        )
-
-    def update_url_keywords_blacklist(self, event):
-        config.set(
-            "Settings",
-            "url_keywords_blacklist",
-            self.url_keywords_blacklist_text.get(1.0, tk.END),
-        )
+    def edit_blacklist_file(self):
+        path = resource_path(constants.blacklist_path)
+        if os.path.exists(path):
+            os.system(f'notepad.exe {path}')
 
     def change_entry_state(self, state):
         for entry in [
             "open_update_checkbutton",
+            "open_service_checkbutton",
+            "app_port_entry",
             "open_use_old_result_checkbutton",
+            "open_use_cache_checkbutton",
+            "open_request_checkbutton",
             "open_driver_checkbutton",
             "open_proxy_checkbutton",
+            "request_timeout_entry",
             "source_file_entry",
             "source_file_button",
             "final_file_entry",
             "final_file_button",
             "open_keep_all_checkbutton",
-            "open_sort_checkbutton",
-            "open_ffmpeg_checkbutton",
             "open_m3u_result_checkbutton",
-            "open_filter_resolution_checkbutton",
-            "min_resolution_entry",
             "urls_limit_entry",
-            "response_time_weight_scale",
-            "resolution_weight_scale",
             "open_update_time_checkbutton",
+            "open_url_info_checkbutton",
+            "open_empty_category_checkbutton",
             "ipv_type_combo",
-            "domain_blacklist_text",
-            "url_keywords_blacklist_text",
+            "ipv6_support_checkbutton",
+            "whitelist_file_button",
+            "blacklist_file_button",
         ]:
             getattr(self, entry).config(state=state)
