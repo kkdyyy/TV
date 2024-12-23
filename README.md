@@ -307,13 +307,13 @@ docker run -v /etc/docker/config:/iptv-api-lite/config -v /etc/docker/output:/ip
 
 | 支付宝                                  | 微信                                      |
 |--------------------------------------|-----------------------------------------|
-| ![支付宝扫码](./static/images/alipay.jpg) | ![微信扫码](./static/images/appreciate.jpg) |
+| ![支付宝扫码]() | ![微信扫码]() |
 
 ## 关注
 
 微信公众号搜索 Govin，或扫码，接收更新推送、学习更多使用技巧：
 
-![微信公众号](./static/images/qrcode.jpg)
+![微信公众号]()
 
 ## 免责声明
 
