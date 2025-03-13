@@ -311,7 +311,7 @@ docker run -v /etc/docker/config:/iptv-api-lite/config -v /etc/docker/output:/ip
 
 ## 关注
 
-微信公众号搜索 Govin，或扫码，接收更新推送、学习更多使用技巧：
+微信公众号搜索 ()，或扫码，接收更新推送、学习更多使用技巧：
 
 ![微信公众号]()
 
